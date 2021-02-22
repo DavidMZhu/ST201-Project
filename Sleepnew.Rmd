@@ -1,0 +1,175 @@
+#Setup
+```{r}
+setwd("~/ST201R/pro/")
+sleepnew<-read.csv("sleepnew.csv", header = TRUE)
+head(sleepnew)
+```
+
+#full
+```{r}
+fullnew<-lm(CognitionZscore~., data = sleepnew)
+summary(fullnew)
+```
+
+```{r}
+depressionnew<-lm(CognitionZscore~ DepressionStatus, data = sleepnew)
+summary(depressionnew)
+#Categorical methods t
+```
+
+#One Gender Model
+```{r}
+sleepgen1<-read.csv("sleepgen1.csv", header = TRUE)
+Modelgen1<-lm(CognitionZscore ~ Drinks + ClassYear + DASScore + PoorSleepQuality, data=sleepgen1)
+summary(Modelgen1)
+#No significant result
+```
+
+#Cognition Z Score with one gender
+```{r}
+sleepgen1<-read.csv("sleepgen1.csv", header = TRUE)
+Model2nd<-lm(CognitionZscore ~ LarkOwl + NumEarlyClass + Drinks + AverageSleep + PoorSleepQuality + DepressionScore + DepressionScore*DepressionScore, data=sleep)
+summary(Model2nd)
+#No significant result
+
+```
+
+#Stepwise one gender
+```{r}
+null.onegen<-lm(CognitionZscore~1, data = sleepgen1)
+full.onegen<-lm(CognitionZscore~., data = sleepgen1)
+
+step(null.onegen, scope = list(lower=null.onegen, upper=full.onegen),direction="forward")
+```
+
+#Forward stepwise reccomend: CognitionZscore ~ DASScore + Drinks + Happiness + Lark
+#Test result not good, replace happiness and DASScore
+
+#Forward one step test
+```{r}
+stepres.onegen.forw<-lm(CognitionZscore ~ Drinks + Lark, data = sleepgen1)
+summary(stepres.onegen.forw)
+```
+
+#Show the autoregression of GPA
+```{r}
+GPAAuto<-lm(CognitionZscore ~ GPA, data = sleepnew)
+summary(GPAAuto)
+Anx.Dep<-lm(CognitionZscore ~ AnxietyScore + DepressionScore, data = sleepnew)
+summary(Anx.Dep)
+vif(Anx.Dep)
+```
+
+#New Stepwise
+```{r}
+null.new<-lm(CognitionZscore~1, data = sleepnew)
+full.new<-lm(CognitionZscore~., data = sleepnew)
+
+step(null.new, scope=list(lower=null.new, upper=full.new),direction="forward")
+stepres.forward<-lm(formula = CognitionZscore ~ Gender + ClassesMissed + AlcoholUse + StressScore, data = sleepnew)
+summary(stepres.forward)
+```
+
+#New Stepwise Back
+```{r}
+step(full.new, data = sleepnew, direction="backward")
+stepres.back<-lm(formula = CognitionZscore ~ Gender + NumEarlyClass + EarlyClass + ClassesMissed + DepressionScore + DepressionScoreSq + AlcoholUse, data = sleepnew)
+summary(stepres.back)
+```
+
+#
+```{r}
+stepres.back.2<-lm(formula = CognitionZscore ~ Gender  + ClassesMissed + DepressionScore + DepressionScoreSq + AlcoholUse, data = sleepnew)
+summary(stepres.back.2)
+```
+
+#anova
+```{r}
+anova(full.new)
+```
+
+#3.28 New model from stepwise
+```{r}
+model.328.2<-lm(CognitionZscore ~ Gender + NumEarlyClass + EarlyClass + ClassesMissed + AlcoholUse + DepressionScore + DepressionScoreSq, data=sleepnew)
+summary(model.328.2)
+#Some one star, look ok but not good enough
+```
+
+#3.28 Interaction term
+```{r}
+model.328.int1<-lm(CognitionZscore ~ Gender*AlcoholUse + AlcoholUse + Gender + NumEarlyClass + EarlyClass + ClassesMissed +  + StressScore, data=sleepnew)
+summary(model.328.int1)
+```
+
+#3.28 Plot
+```{r}
+head(sleepnew) 
+summary(sleepnew)
+attach(sleepnew)
+hist(CognitionZscore)
+boxplot(CognitionZscore,horizontal=T,xlab="CognitionZscore")
+
+#3outliers
+boxplot(NumEarlyClass,horizontal=T,xlab="NumEarlyClass")
+hist(NumEarlyClass)
+
+#3 outliers
+hist(PoorSleepQuality)
+boxplot(PoorSleepQuality,horizontal=T,xlab="PoorSleepQuality")
+summary(PoorSleepQuality)
+
+
+
+boxplot(DepressionScore,horizontal=T,xlab="DepressionScore")
+summary(DepressionScore)
+
+boxplot(StressScore, horizontal=T,xlab="StressScore")
+summary(StressScore)
+
+#6outliers?
+boxplot(Happiness,horizontal=T,xlab="Happiness")
+#2outliers?
+boxplot(AlcoholUse,horizontal=T,xlab="AlcoholUse")
+#4 outliers
+boxplot(AverageSleep,horizontal=T,xlab="AverageSleep")
+summary(AverageSleep)
+#4outliers
+
+boxplot(ClassesMissed,horizontal=T,xlab="ClassesMissed")
+detach(sleepnew)
+```
+
+#why not use classmissed
+```{r}
+classmissed<-lm(CognitionZscore ~ ClassesMissed, data = sleepnew)
+summary(classmissed)
+```
+
+#New data input after removing outliers
+```{r}
+sleep.out<-(read.csv("sleepnoout.csv", header = T))
+```
+
+#3.28 New model based on no outliers dataset
+```{r}
+out.1<-lm(CognitionZscore ~ Gender + EarlyClass + ClassesMissed + EarlyClass*ClassesMissed + DepressionScore + DepressionScoreSq , data=sleep.out)
+summary(out.1)
+#Interaction term includes EarlyClass*ClassesMissed, as more early class may results in more classes missed
+```
+
+# 3.28 Try the above model without removing outlier
+```{r}
+final.1<-lm(CognitionZscore ~ Gender + EarlyClass*ClassesMissed + DepressionScore + DepressionScoreSq, data=sleepnew)
+summary(final.1)
+```
+
+# 3.28 Try the above model with AlcoholUse
+```{r}
+final.2<-lm(CognitionZscore ~ Gender + EarlyClass*ClassesMissed + DepressionScore + DepressionScoreSq + AlcoholUse, data=sleepnew)
+summary(final.2)
+```
+
+#residual analysis
+```{r}
+pairs(sleep.out)
+```

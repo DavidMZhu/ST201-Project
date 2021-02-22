@@ -1,0 +1,215 @@
+```{r}
+sleep<-read.csv(file.choose(),header = T)
+```
+
+```{r}
+plot(sleep$NumEarlyClass, sleep$ClassesMissed)
+lark.bed <-table(sleep$LarkOwl,sleep$WeekdayRise)
+summary(lark.bed)
+#boxplot(lark.bed)
+```
+
+```{r}
+summary(sleep$WeekdayBed)
+summary(sleep$WeekdayRise)
+sd(sleep$WeekdayBed)
+sd(sleep$WeekdayRise)
+29.10-21.80
+12.02-5.5
+```
+
+
+```{r}
+plot(sleep$WeekdayBed,sleep$CognitionZscore)
+cor(sleep$WeekdayBed,sleep$CognitionZscore)
+lm1=lm(CognitionZscore ~ WeekdayBed, data = sleep)
+summary(lm1)
+```
+
+```{r}
+plot(sleep$DASScore,sleep$Happiness)
+lm2<-lm(DASScore ~ Happiness, data = sleep)
+summary(lm2)
+```
+
+
+```{r}
+# adjust for rise time! -5.5
+Risetime = sleep$WeekdayRise - 5.5
+LM<-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks, data = sleep)
+summary(LM)
+LM1 <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender, data = sleep)
+summary(LM1)
+```
+
+```{r}
+#adding depression scores to check model
+#1 add DASS
+LMDASS <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender + DASScore, data = sleep)
+summary(LMDASS)
+LMHAP <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender + Happiness, data = sleep)
+summary(LMHAP)
+```
+
+```{r}
+LMDEP <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender + DepressionScore, data = sleep)
+summary(LMDEP)
+LMAN <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender + AnxietyScore, data = sleep)
+summary(LMAN)
+LMSS <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender + StressScore, data = sleep)
+summary(LMSS)
+```
+
+```{r}
+#stress and DASS
+LMINCASE <-lm(CognitionZscore ~ Risetime + WeekdaySleep + PoorSleepQuality + Drinks + Gender + StressScore + DASScore, data = sleep)
+summary(LMINCASE)
+#结果变得更垃圾了
+```
+
+```{r}
+# dropping variables and at the same tome check the f-test p value
+# 1 drop weekdaysleep
+LMdrop.1 <-lm(CognitionZscore ~ Risetime  + PoorSleepQuality + Drinks + Gender + StressScore, data = sleep)
+summary(LMdrop.1)
+
+# improves the intercept and f test p value
+# also the coefficient significance of risetime dropped from 35% to 22%, but for poor sleep quality and drinks did not change.
+```
+
+```{r}
+#dropping poorsleepquality
+LMdrop.2 <-lm(CognitionZscore ~ Risetime + Drinks + Gender + StressScore, data = sleep)
+summary(LMdrop.2)
+```
+
+```{r}
+anova(LMdrop.2)
+LMdrop.2se<-rstandard(LMdrop.2)
+hist(LMdrop.2se)
+plot(LMdrop.2)
+```
+
+```{r}
+plot(sleep$CognitionZscore, sleep$StressScore)
+plot(sleep$CognitionZscore, Risetime)
+```
+
+```{r}
+#stress squared
+Stress2 = sleep$StressScore*sleep$StressScore
+LMdrop.22 <-lm(CognitionZscore ~ Risetime + Drinks + Gender + StressScore + Stress2, data = sleep)
+summary(LMdrop.22)
+```
+
+```{r}
+#drinks  drinks could be ignored plus its squared term
+plot(sleep$CognitionZscore, sleep$Drinks)
+Drinks2 = sleep$Drinks * sleep$Drinks 
+LMsq2 <-lm(CognitionZscore ~ Risetime + Drinks + Gender + StressScore + Stress2 + Drinks2, data = sleep)
+summary(LMsq2)
+```
+
+```{r}
+#weekday bed DASScore is valid with its sq term
+plot(sleep$CognitionZscore, sleep$WeekdayBed)
+plot(sleep$CognitionZscore, sleep$DASScore)
+DASScore2 = sleep$DASScore * sleep$DASScore
+LMsq2.DASS <-lm(CognitionZscore ~ Risetime + Drinks + Gender + DASScore + DASScore2 , data = sleep)
+summary(LMsq2.DASS)
+```
+
+```{r}
+# Anxiety
+plot(sleep$CognitionZscore, sleep$AnxietyScore)
+AnxietyScore2 = sleep$AnxietyScore * sleep$AnxietyScore
+LMsq2.AN <-lm(CognitionZscore ~ Risetime + Drinks + Gender + AnxietyScore + AnxietyScore2 , data = sleep)
+summary(LMsq2.AN)
+```
+
+```{r}
+#Depression
+plot(sleep$CognitionZscore, sleep$DepressionScore)
+Dep2 = sleep$DepressionScore * sleep$DepressionScore
+LMsq2.DEP <-lm(CognitionZscore ~ Risetime + Drinks + Gender + DepressionScore + Dep2, data = sleep)
+summary(LMsq2.DEP)
+```
+
+
+```{r}
+plot(sleep$NumEarlyClass , sleep$CognitionZscore)
+plot(sleep$ClassesMissed , sleep$CognitionZscore)
+plot(sleep$DepressionScore, sleep$CognitionZscore)
+plot(sleep$CognitionZscore , sleep$NumEarlyClass)
+```
+
+```{r}
+#classesmissed NUMearly classes
+
+Num2 = sleep$NumEarlyClass * sleep$NumEarlyClass
+LMsq2.NUM <-lm(CognitionZscore ~ Risetime + Drinks + Gender + DepressionScore + Dep2 + NumEarlyClass + Num2, data = sleep)
+summary(LMsq2.NUM)
+
+Miss2 = sleep$ClassesMissed * sleep$ClassesMissed
+LMsq2.MISS <-lm(CognitionZscore ~ Risetime + Drinks + Gender + DepressionScore + Dep2 + ClassesMissed + Miss2, data = sleep)
+summary(LMsq2.MISS)
+
+```
+
+```{r}
+#to prove LarkOwl is not helpful
+plot(sleep$LarkOwl, sleep$WeekdayRise)
+```
+
+```{r}
+# weekdaybed
+plot(sleep$WeekdayBed, sleep$CognitionZscore)
+#weekdaybed (drop risetime variable)
+
+WeekBD2 = sleep$WeekdayBed * sleep$WeekdayBed
+LMsq2.BD2 <-lm(CognitionZscore ~ WeekdayBed + WeekBD2 + Drinks + Gender + DepressionScore + Dep2, data = sleep)
+summary(LMsq2.BD2)
+```
+
+```{r}
+#average sleep time
+plot(sleep$WeekdaySleep, sleep$CognitionZscore)
+WeekSP2 = sleep$WeekdaySleep * sleep$WeekdaySleep
+
+LMsq2.SP2 <-lm(CognitionZscore ~ log(WeekdaySleep) + WeekdaySleep+ Drinks + Gender + DepressionScore + Dep2, data = sleep)
+summary(LMsq2.SP2)
+
+```
+
+```{r}
+#sleep quality 
+plot(sleep$PoorSleepQuality, sleep$CognitionZscore)
+```
+
+```{r}
+#alcohol use
+
+
+
+```
+
+#DASSScore Components check
+```{r}
+DASSComp <- lm(DASScore ~ DepressionScore + AnxietyScore + StressScore, data = sleep)
+summary(DASSComp)
+#Result is perfect fit
+```
+
+#Happiness Check
+```{r}
+Happy.Dep <- lm(Happiness ~ DepressionScore, data = sleep)
+summary(Happy.Dep)
+#Happiness and DepressionScore is perfectly fit. Happiness is very unrrelated to CogZ, but Depression is significant
+```
+
+
+```{r}
+plot(sleep$GPA, sleep$CognitionZscore)
+
+```
+

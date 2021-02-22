@@ -1,0 +1,220 @@
+---
+title: "ST201 Project Full Notes"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Setup
+##sleepnew is the new dataset with edited value
+```{r}
+setwd("~/ST201R/pro/")
+sleepnew<-read.csv("sleepnew.csv", header = TRUE)
+head(sleepnew)
+```
+
+#All the important plot
+```{r}
+head(sleepnew) 
+summary(sleepnew)
+attach(sleepnew)
+hist(CognitionZscore)
+boxplot(CognitionZscore,horizontal=T,xlab="CognitionZscore")
+
+#3outliers
+boxplot(NumEarlyClass,horizontal=T,xlab="NumEarlyClass")
+hist(NumEarlyClass)
+
+#3 outliers
+hist(PoorSleepQuality)
+boxplot(PoorSleepQuality,horizontal=T,xlab="PoorSleepQuality")
+summary(PoorSleepQuality)
+
+
+
+boxplot(DepressionScore,horizontal=T,xlab="DepressionScore")
+summary(DepressionScore)
+
+boxplot(StressScore, horizontal=T,xlab="StressScore")
+summary(StressScore)
+
+#6outliers?
+boxplot(Happiness,horizontal=T,xlab="Happiness")
+#2outliers?
+boxplot(AlcoholUse,horizontal=T,xlab="AlcoholUse")
+#4 outliers
+boxplot(AverageSleep,horizontal=T,xlab="AverageSleep")
+summary(AverageSleep)
+#4outliers
+
+boxplot(ClassesMissed,horizontal=T,xlab="ClassesMissed")
+detach(sleepnew)
+```
+
+#New data input after removing outliers
+```{r}
+sleep.out<-(read.csv("sleepnoout.csv", header = T))
+```
+The cook distance test relating to outlier removal is on Xingdian's place, I will ask him to add the code from that part.
+##New model based on outlier-removed dataset
+```{r}
+out.1<-lm(CognitionZscore ~ Gender + EarlyClass + ClassesMissed + EarlyClass*ClassesMissed + DepressionScore + DepressionScoreSq , data=sleep.out)
+summary(out.1)
+#Interaction term includes EarlyClass*ClassesMissed, as more early class may results in more classes missed
+```
+Beware that for some reason this is a bit different from the one on the Google Docs. 
+
+#Model with original dataset
+```{r}
+final.1<-lm(CognitionZscore ~ Gender + EarlyClass*ClassesMissed + DepressionScore + DepressionScoreSq , data=sleepnew)
+summary(final.1)
+```
+
+# 3.28 Try the above model with AlcoholUse
+```{r}
+final.2<-lm(CognitionZscore ~ Gender + EarlyClass*ClassesMissed + DepressionScore + DepressionScoreSq + AlcoholUse, data=sleepnew)
+summary(final.2)
+```
+
+#Cognition - Depression
+```{r}
+plot(sleepnew$DepressionScore,sleepnew$CognitionZscore, xlab = "Depression Score", ylab = "Cognition Z-Score")
+
+lm1<-lm(sleepnew$CognitionZscore~sleepnew$DepressionScore)
+abline(lm1,col="red")
+summary(lm1)
+summary(sleep$DepressionScore)
+```
+
+#Earlyclass - Classmissed
+```{r}
+plot(sleepnew$EarlyClass,sleepnew$ClassesMissed, xlab = "Easly Class", ylab = "Class missed")
+
+lm3<-lm(sleepnew$ClassesMissed~sleepnew$EarlyClass)
+abline(lm3,col="red")
+summary(lm3)
+summary(sleep$DepressionScore)
+```
+
+#residual analysis
+```{r}
+pairs(sleep.out)
+```
+```{r}
+pairs(sleepnew)
+```
+
+#anova
+```{r}
+anova(final.1)
+```
+
+#anova 2
+```{r}
+anova(final.2)
+```
+
+#Leverage - Hat values
+
+#Influencence
+
+Rearrange word document
+Methodology of lay report
+Policy suggestion
+Graph of lay report
+
+```{r}
+sleepdep<-lm(AnxietyScore ~ Owl + Lark + PoorSleepQuality + AverageSleep + AlcoholUse, data = sleepnew)
+summary(sleepdep)
+```
+
+```{r}
+plot(sleepnew$PoorSleepQuality,sleepnew$DepressionScore, xlab = "Sleep Quality Marks", ylab = "Depression Score")
+lmd<-lm(sleepnew$DepressionScore~sleepnew$PoorSleepQuality)
+abline(lmd,col="red")
+
+
+plot(sleepnew$PoorSleepQuality,sleepnew$AnxietyScore, xlab = "Sleep Quality Marks", ylab = "Anxiety Score")
+lma<-lm(sleepnew$AnxietyScore~sleepnew$PoorSleepQuality)
+abline(lma,col="red")
+
+
+plot(sleepnew$PoorSleepQuality,sleepnew$StressScore, xlab = "Sleep Quality Marks", ylab = "Stress Score")
+lms<-lm(sleepnew$StressScore~sleepnew$PoorSleepQuality)
+abline(lms,col="red")
+
+```
+
+```{r}
+Sleep<-read.table("sleepnew.txt",header=T)
+attach(Sleep)
+lm1<-lm(GPA~Gender,data=Sleep)
+#Final Model
+#Zscore = Gender + EarlyClass + ClassesMissed + EarlyClass*ClassesMissed + Depression + Depression^2
+DepressionSq=Sleep$DepressionScore^2
+lmfinal<-lm(CognitionZscore~Gender+EarlyClass+ClassesMissed+EarlyClass*ClassesMissed+DepressionSq+DepressionScore, data=Sleep)
+anova(lmfinal)
+
+#Outliers of our final model
+lmfinal.stdres = rstandard(lmfinal)
+summary(lmfinal.stdres)
+help(rstandard)
+show(lmfinal.stdres)
+outliers = c(lmfinal.stdres>3)
+show(outliers)
+
+#outliers of ALL individual models (assuming only 1 x variable)
+lm1<-lm(CognitionZscore~GPA,data=Sleep)
+lm1.stdres = rstandard(lm1)
+show(lm1.stdres>3)
+
+lm2<-lm(CognitionZscore~NumEarlyClass,data=Sleep)
+lm2.stdres = rstandard(lm2)
+show(lm2.stdres>3)
+
+lm3<-lm(CognitionZscore~ClassesMissed,data=Sleep)
+lm3.stdres = rstandard(lm3)
+show(lm3.stdres>3)
+
+lm4<-lm(CognitionZscore~DepressionScore,data=Sleep)
+lm4.stdres = rstandard(lm4)
+show(lm4.stdres>3)
+
+lm5<-lm(CognitionZscore~StressScore,data=Sleep)
+lm5.stdres = rstandard(lm5)
+show(lm5.stdres>3)
+
+lm6<-lm(CognitionZscore~AnxietyScore,data=Sleep)
+lm6.stdres = rstandard(lm6)
+show(lm6.stdres>3)
+
+lm7<-lm(CognitionZscore~DASScore,data=Sleep)
+lm7.stdres = rstandard(lm7)
+show(lm7.stdres>3)
+
+lm8<-lm(CognitionZscore~AlcoholUse,data=Sleep)
+lm8.stdres = rstandard(lm8)
+show(lm8.stdres>3)
+
+lm9<-lm(CognitionZscore~AverageSleep,data=Sleep)
+lm9.stdres = rstandard(lm9)
+show(lm9.stdres>3)
+
+
+#Leverage, by using hat values
+#In this case, p=number of indepent variables=28
+lmfinal.hat= hatvalues(final.1)
+show(lmfinal.hat>0.2292)
+#Point 25 172! are highly likely to have high leverage
+
+
+
+#Influence, by using cook's distance
+plot(final.1, which = c(4))
+#point 25 172 and 182 should be removed
+
+
+
+```
